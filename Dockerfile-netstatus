@@ -1,0 +1,23 @@
+FROM node:8-alpine
+
+ENV APP_DIR /home/node/app
+
+WORKDIR $APP_DIR
+
+RUN apk add --update --no-cache --virtual .build-deps git \
+		&& git clone https://github.com/cubedro/eth-netstats . \
+    && npm install --force \
+    && cd node_modules/geoip-lite \
+    && npm run-script updatedb \
+    && npm install -g grunt-cli \
+    && grunt \
+    && npm uninstall -g grunt-cli \
+    && npm cache clean --force  \
+    && apk del .build-deps
+
+USER node
+
+ENV WS_SECRET mysecret
+
+EXPOSE 3000
+CMD [ "npm", "start" ]
